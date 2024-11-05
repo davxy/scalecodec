@@ -39,37 +39,24 @@ class Compact(ScaleType):
         super().__init__(data, **kwargs)
 
     def process_compact_bytes(self):
-        compact_byte = self.get_next_bytes(1)
-        try:
-            byte_mod = compact_byte[0] % 4
-        except IndexError:
-            raise InvalidScaleTypeValueException("Invalid byte for Compact")
-
-        if byte_mod == 0:
-            self.compact_length = 1
-        elif byte_mod == 1:
-            self.compact_length = 2
-        elif byte_mod == 2:
-            self.compact_length = 4
+        b = self.get_next_bytes(1)
+        if b == 0:
+            v = 0
+        elif b == 0xff:
+            v = int.from_bytes(input.read(8), byteorder='little')
         else:
-            self.compact_length = int(5 + (compact_byte[0] - 3) / 4)
-
-        if self.compact_length == 1:
-            self.compact_bytes = compact_byte
-        elif self.compact_length in [2, 4]:
-            self.compact_bytes = compact_byte + self.get_next_bytes(self.compact_length - 1)
-        else:
-            self.compact_bytes = self.get_next_bytes(self.compact_length - 1)
-
-        return self.compact_bytes
+            # Find the first zero bit from the left
+            len = next(i for i in range(8) if (b & (0b1000_0000 >> i)) == 0)
+            # Prepare buffer and read necessary bytes
+            buf = bytearray(8)
+            input.read_into(buf[:len])
+            # Calculate `rem` and combine to get final `v`
+            rem = (b & ((1 << (7 - len)) - 1))
+            v = int.from_bytes(buf, 'little') + (rem << (8 * len))
+        return int(v)
 
     def process(self):
-        self.process_compact_bytes()
-
-        if self.compact_length <= 4:
-            return int(int.from_bytes(self.compact_bytes, byteorder='little') / 4)
-        else:
-            return int.from_bytes(self.compact_bytes, byteorder='little')
+        return self.process_compact_bytes()
 
     def process_encode(self, value):
 
@@ -111,12 +98,7 @@ class CompactU32(Compact):
     type_string = 'Compact<u32>'
 
     def process(self):
-        self.process_compact_bytes()
-
-        if self.compact_length <= 4:
-            return int(int.from_bytes(self.compact_bytes, byteorder='little') / 4)
-        else:
-            return int.from_bytes(self.compact_bytes, byteorder='little')
+        return self.process_compact_bytes()
 
     def process_encode(self, value):
 
