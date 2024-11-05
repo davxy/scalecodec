@@ -47,9 +47,7 @@ class Compact(ScaleType):
         else:
             # Find the first zero bit from the left
             len = next(i for i in range(8) if (b & (0b1000_0000 >> i)) == 0)
-            # Prepare buffer and read necessary bytes
-            buf = bytearray(8)
-            input.read_into(buf[:len])
+            buf = self.get_next_bytes(len)
             # Calculate `rem` and combine to get final `v`
             rem = (b & ((1 << (7 - len)) - 1))
             v = int.from_bytes(buf, 'little') + (rem << (8 * len))
