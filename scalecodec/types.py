@@ -39,7 +39,7 @@ class Compact(ScaleType):
         super().__init__(data, **kwargs)
 
     def process_compact_bytes(self):
-        b = self.get_next_bytes(1)
+        b = self.get_next_bytes(1)[0]
         if b == 0:
             v = 0
         elif b == 0xff:
