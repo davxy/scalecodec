@@ -1213,10 +1213,6 @@ class Enum(ScaleType):
             try:
                 enum_type_mapping = self.type_mapping[self.index]
 
-                if enum_type_mapping[1] is None or enum_type_mapping[1] == 'Null':
-                    self.value_object = (enum_type_mapping[0], None)
-                    return enum_type_mapping[0]
-
                 result_obj = self.process_type(enum_type_mapping[1], metadata=self.metadata)
 
                 self.value_object = (enum_type_mapping[0], result_obj)
