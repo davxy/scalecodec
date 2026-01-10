@@ -43,14 +43,15 @@ class Compact(ScaleType):
         if b == 0:
             v = 0
         elif b == 0xff:
-            v = int.from_bytes(input.read(8), byteorder='little')
+            buf = self.get_next_bytes(8)
+            v = int.from_bytes(buf, byteorder='little')
         else:
             # Find the first zero bit from the left
             len = next(i for i in range(8) if (b & (0b1000_0000 >> i)) == 0)
             buf = self.get_next_bytes(len)
             # Calculate `rem` and combine to get final `v`
             rem = (b & ((1 << (7 - len)) - 1))
-            v = int.from_bytes(buf, 'little') + (rem << (8 * len))
+            v = int.from_bytes(buf, byteorder='little') + (rem << (8 * len))
         return int(v)
 
     def process(self):
