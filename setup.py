@@ -29,7 +29,12 @@ from os import path, environ
 # and accepts an argument to specify the text encoding
 # Python 3 only projects can skip this import
 from io import open
+import re
 
+def find_version_from_file():
+    return re.search(r"^__version__ = '(.*)'$",
+                     open('scalecodec/version.py', 'r').read(),
+                     re.MULTILINE).group(1)
 
 if environ.get('TRAVIS_TAG'):
     version = environ['TRAVIS_TAG'].replace('v', '')
@@ -42,7 +47,7 @@ elif environ.get('GITHUB_REF'):
 
     version = environ['GITHUB_REF'].replace('refs/tags/v', '')
 else:
-    raise ValueError('Missing commit tag, can\'t set version')
+    version = find_version_from_file()
 
 here = path.abspath(path.dirname(__file__))
 
