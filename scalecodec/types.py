@@ -1208,7 +1208,14 @@ class Enum(ScaleType):
                 raise ValueError("Value for enum with type_mapping can only have one value")
 
             for enum_key, enum_value in value.items():
-                for idx, (item_key, item_value) in enumerate(self.type_mapping):
+
+                if type(self.type_mapping) is dict:
+                    # Type mapping with explicitly specified index numbers
+                    type_mapping = self.type_mapping.items()
+                else:
+                    type_mapping = enumerate(self.type_mapping)
+
+                for idx, (item_key, item_value) in type_mapping:
                     if item_key == enum_key:
                         self.index = idx
                         struct_obj = self.runtime_config.create_scale_object(
